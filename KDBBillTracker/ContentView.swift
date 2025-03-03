@@ -10,16 +10,21 @@ import SwiftData
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @Environment(BillsViewModel.self) private var viewModel: BillsViewModel
 
     var body: some View {
+        @Bindable var viewModel = viewModel
+        
         NavigationSplitView {
+            MultiDatePicker("Bill Dates", selection: $viewModel.billDates)
+                .padding(.horizontal)
+            
             List {
-                ForEach(items) { item in
+                ForEach(viewModel.bills) { item in
                     NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
+                        Text("Item at \(item.name)")
                     } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+                        Text(item.name)
                     }
                 }
                 .onDelete(perform: deleteItems)
@@ -37,25 +42,35 @@ struct ContentView: View {
         } detail: {
             Text("Select an item")
         }
+        .onAppear {
+            let vm = viewModel
+
+            Task {
+                await vm.fetchBills()
+            }
+        }
     }
 
     private func addItem() {
+        let addBill = BillDataHolder(name: "New Bill", amountDue: 100.0)
+
         withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
+            viewModel.addBill(addBill)
         }
     }
 
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
-            }
+            viewModel.deleteBill(at: offsets)
         }
     }
 }
 
 #Preview {
+    let container = ModelContainer.previewContainer!
+    let vm: BillsViewModel = BillsViewModel(modelContainer: container)
+    
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
+        .modelContainer(container)
+        .environment(vm)
 }

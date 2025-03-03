@@ -10,10 +10,16 @@ import SwiftData
 
 @main
 struct KDBBillTrackerApp: App {
+
+    let modelContainer: ModelContainer
+
+    var viewModel: BillsViewModel
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            Item.self,
+            Bills.self,
         ])
+
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
         do {
@@ -22,11 +28,27 @@ struct KDBBillTrackerApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
+    
+    init() {
+        self.modelContainer = sharedModelContainer
+
+        viewModel = BillsViewModel(modelContainer: modelContainer)
+    }
 
     var body: some Scene {
         WindowGroup {
             ContentView()
         }
         .modelContainer(sharedModelContainer)
+        .environment(viewModel)
     }
+}
+
+extension ModelContainer{
+    static let previewContainer: ModelContainer? = {
+        let config = ModelConfiguration(isStoredInMemoryOnly: true)
+        let container = try? ModelContainer(for: Bills.self, configurations: config)
+
+        return container
+    }()
 }
