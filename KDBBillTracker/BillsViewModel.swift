@@ -11,18 +11,16 @@ import Observation
 
 @MainActor @Observable class BillsViewModel {
 
-    @ObservationIgnored let modelContainer: ModelContainer
+    @ObservationIgnored let context: ModelContext
     @ObservationIgnored let repositoryActor: BillRepository
 
     var bills: [Bills] = []
     var billDates: Set<DateComponents> = []
-    let context: ModelContext
 
-    init(modelContainer: ModelContainer) {
-        self.modelContainer = modelContainer
+    init(modelContext: ModelContext) {
+        self.context = modelContext
 
-        repositoryActor = BillRepository(modelContainer: self.modelContainer)
-        context = ModelContext(modelContainer)
+        repositoryActor = BillRepository(modelContainer: self.context.container)
     }
 
     func fetchBills() async {
@@ -31,12 +29,13 @@ import Observation
 
         do {
             var billIDs = try await repositoryActor.fetchBills()
-            
+
+            // Populate with Dummy data for testing
             if billIDs.isEmpty {
                 try await repositoryActor.addDummyBills()
                 billIDs = try await repositoryActor.fetchBills()
             }
-            
+
             for billID in billIDs {
                 guard let bill = context.model(for: billID) as? Bills else {
                     continue

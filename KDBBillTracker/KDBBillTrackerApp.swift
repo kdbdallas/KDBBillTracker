@@ -32,12 +32,12 @@ struct KDBBillTrackerApp: App {
     init() {
         self.modelContainer = sharedModelContainer
 
-        viewModel = BillsViewModel(modelContainer: modelContainer)
+        viewModel = BillsViewModel(modelContext: modelContainer.mainContext)
     }
 
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            MainBillView()
         }
         .modelContainer(sharedModelContainer)
         .environment(viewModel)
