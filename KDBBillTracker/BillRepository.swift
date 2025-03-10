@@ -18,7 +18,9 @@ actor BillRepository: Sendable {
     private var context: ModelContext { modelExecutor.modelContext }
     
     func fetchBills() async throws -> [PersistentIdentifier] {
+        let today = Calendar.current.startOfDay(for: Date.now)
         let descriptor = FetchDescriptor<Bills>(
+            predicate: #Predicate { $0.nextDueDate >= today },
             sortBy: [
                 .init(\.nextDueDate),
                 .init(\.startingDueDate)
