@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  MainBillView.swift
 //  KDBBillTracker
 //
 //  Created by Dallas Brown on 2/20/25.
@@ -8,9 +8,11 @@
 import SwiftUI
 import SwiftData
 
-struct ContentView: View {
+struct MainBillView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(BillsViewModel.self) private var viewModel: BillsViewModel
+    
+    @State private var showAddBillSheet: Bool = false
 
     var body: some View {
         @Bindable var viewModel = viewModel
@@ -18,11 +20,12 @@ struct ContentView: View {
         NavigationSplitView {
             MultiDatePicker("Bill Dates", selection: $viewModel.billDates)
                 .padding(.horizontal)
+                .disabled(true)
             
             List {
                 ForEach(viewModel.bills) { item in
                     NavigationLink {
-                        Text("Item at \(item.name)")
+                        Text("Bill at \(item.name)")
                     } label: {
                         Text(item.name)
                     }
@@ -34,13 +37,14 @@ struct ContentView: View {
                     EditButton()
                 }
                 ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
+                    Button(action: showAddBillScreen) {
+                        Label("Add Bill", systemImage: "plus")
                     }
+                    .sheet(isPresented: $showAddBillSheet, content: AddBillView.init)
                 }
             }
         } detail: {
-            Text("Select an item")
+            Text("Select a Bill")
         }
         .onAppear {
             let vm = viewModel
@@ -51,11 +55,9 @@ struct ContentView: View {
         }
     }
 
-    private func addItem() {
-        let addBill = BillDataHolder(name: "New Bill", amountDue: 100.0)
-
+    private func showAddBillScreen() {
         withAnimation {
-            viewModel.addBill(addBill)
+            showAddBillSheet.toggle()
         }
     }
 
@@ -68,9 +70,9 @@ struct ContentView: View {
 
 #Preview {
     let container = ModelContainer.previewContainer!
-    let vm: BillsViewModel = BillsViewModel(modelContainer: container)
+    let vm: BillsViewModel = BillsViewModel(modelContext: container.mainContext)
     
-    ContentView()
+    MainBillView()
         .modelContainer(container)
         .environment(vm)
 }

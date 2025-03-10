@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		8E4C7B812D7DFFBE00D833C0 /* SFSymbolsPicker in Frameworks */ = {isa = PBXBuildFile; productRef = 8E4C7B802D7DFFBE00D833C0 /* SFSymbolsPicker */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		8EF807092D6796A30043B59C /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				8E4C7B812D7DFFBE00D833C0 /* SFSymbolsPicker in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -112,6 +117,7 @@
 			);
 			name = KDBBillTracker;
 			packageProductDependencies = (
+				8E4C7B802D7DFFBE00D833C0 /* SFSymbolsPicker */,
 			);
 			productName = KDBBillTracker;
 			productReference = 8EF806F62D67969B0043B59C /* KDBBillTracker.app */;
@@ -195,6 +201,9 @@
 			);
 			mainGroup = 8EF806ED2D67969B0043B59C;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				8E4C7B7F2D7DFFBE00D833C0 /* XCRemoteSwiftPackageReference "SFSymbolsPickerForSwiftUI" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 8EF806F72D67969B0043B59C /* Products */;
 			projectDirPath = "";
@@ -550,6 +559,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		8E4C7B7F2D7DFFBE00D833C0 /* XCRemoteSwiftPackageReference "SFSymbolsPickerForSwiftUI" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/alessiorubicini/SFSymbolsPickerForSwiftUI.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.0.6;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		8E4C7B802D7DFFBE00D833C0 /* SFSymbolsPicker */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8E4C7B7F2D7DFFBE00D833C0 /* XCRemoteSwiftPackageReference "SFSymbolsPickerForSwiftUI" */;
+			productName = SFSymbolsPicker;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 8EF806EE2D67969B0043B59C /* Project object */;
 }
