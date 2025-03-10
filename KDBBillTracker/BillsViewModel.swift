@@ -40,10 +40,12 @@ import Observation
                 guard let bill = context.model(for: billID) as? Bills else {
                     continue
                 }
+
+                bill.calculateNextDueDate()
                 
                 bills.append(bill)
 
-                billDates.insert(Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: bill.startingDueDate))
+                billDates.insert(Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: bill.nextDueDate))
             }
         } catch {
             print("Error Fetching Bills with error: \(error)")

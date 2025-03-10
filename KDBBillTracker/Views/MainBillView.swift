@@ -20,6 +20,7 @@ struct MainBillView: View {
         NavigationSplitView {
             MultiDatePicker("Bill Dates", selection: $viewModel.billDates)
                 .padding(.horizontal)
+                .disabled(true)
             
             List {
                 ForEach(viewModel.bills) { item in
