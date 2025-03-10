@@ -40,8 +40,6 @@ import Observation
                 guard let bill = context.model(for: billID) as? Bills else {
                     continue
                 }
-
-                bill.calculateNextDueDate()
                 
                 bills.append(bill)
 

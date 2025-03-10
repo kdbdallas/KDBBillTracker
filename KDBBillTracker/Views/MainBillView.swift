@@ -13,6 +13,12 @@ struct MainBillView: View {
     @Environment(BillsViewModel.self) private var viewModel: BillsViewModel
     
     @State private var showAddBillSheet: Bool = false
+    
+    static let billDateFormat: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM dd"
+        return formatter
+    }()
 
     var body: some View {
         @Bindable var viewModel = viewModel
@@ -21,13 +27,32 @@ struct MainBillView: View {
             MultiDatePicker("Bill Dates", selection: $viewModel.billDates)
                 .padding(.horizontal)
                 .disabled(true)
-            
+
             List {
                 ForEach(viewModel.bills) { item in
                     NavigationLink {
-                        Text("Bill at \(item.name)")
+                        Text("View Bill \(item.name)")
                     } label: {
-                        Text(item.name)
+                        HStack {
+                            Image(systemName: item.icon)
+                                .font(.title)
+                            
+                            VStack(alignment: .leading) {
+                                Text(item.name)
+                                    .font(.headline)
+                                
+                                Text(item.dueDateOffsetString())
+                                    .font(.subheadline)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack {
+                                Text("\(item.nextDueDate, formatter: MainBillView.billDateFormat)")
+                                
+                                Text(item.amountDue, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                            }
+                        }
                     }
                 }
                 .onDelete(perform: deleteItems)

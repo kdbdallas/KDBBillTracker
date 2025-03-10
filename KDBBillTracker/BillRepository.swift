@@ -77,4 +77,20 @@ actor BillRepository: Sendable {
             throw error
         }
     }
+    
+    func addBillPayment(billID: PersistentIdentifier, payment: BillPaymentDataHolder) async throws {
+        guard let bill = context.model(for: billID) as? Bills else {
+            throw BillRepositoryError.noObjectForID
+        }
+
+        let newPayment = BillPayments(bill: bill, amount: payment.amount, date: payment.date, note: payment.note, id: payment.id)
+
+        bill.addPayment(payment: newPayment)
+        
+        do {
+            try context.save()
+        } catch {
+            throw error
+        }
+    }
 }
