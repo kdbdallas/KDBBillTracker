@@ -11,8 +11,27 @@ import SwiftData
 struct MainBillView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(BillsViewModel.self) private var viewModel: BillsViewModel
+
+    @Query var bills: [Bills]
     
     @State private var showAddBillSheet: Bool = false
+    
+    static let billDateFormat: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMM dd"
+        return formatter
+    }()
+    
+    init() {
+        let today = Calendar.current.startOfDay(for: Date.now)
+        let past = Date.distantPast
+
+        let predicate = #Predicate<Bills> {
+            ($0.nextDueDate >= today && $0.lastPaid ?? past != $0.nextDueDate) || ($0.nextDueDate < today && $0.lastPaid ?? past < $0.nextDueDate)
+        }
+
+        _bills = Query(filter: predicate, sort: \.nextDueDate)
+    }
 
     var body: some View {
         @Bindable var viewModel = viewModel
@@ -21,13 +40,32 @@ struct MainBillView: View {
             MultiDatePicker("Bill Dates", selection: $viewModel.billDates)
                 .padding(.horizontal)
                 .disabled(true)
-            
+
             List {
-                ForEach(viewModel.bills) { item in
+                ForEach(bills) { item in
                     NavigationLink {
-                        Text("Bill at \(item.name)")
+                        BillDetailView.init(bill: item)
                     } label: {
-                        Text(item.name)
+                        HStack {
+                            Image(systemName: item.icon)
+                                .font(.title)
+                            
+                            VStack(alignment: .leading) {
+                                Text(item.name)
+                                    .font(.headline)
+                                
+                                Text(item.dueDateOffsetString())
+                                    .font(.subheadline)
+                            }
+                            
+                            Spacer()
+                            
+                            VStack {
+                                Text("\(item.nextDueDate, formatter: MainBillView.billDateFormat)")
+                                
+                                Text(item.amountDue, format: .currency(code: Locale.current.currency?.identifier ?? "USD"))
+                            }
+                        }
                     }
                 }
                 .onDelete(perform: deleteItems)
@@ -63,7 +101,11 @@ struct MainBillView: View {
 
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
-            viewModel.deleteBill(at: offsets)
+            for index in offsets {
+                modelContext.delete(bills[index])
+            }
+
+            try? modelContext.save()
         }
     }
 }

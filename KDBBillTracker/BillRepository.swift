@@ -18,10 +18,12 @@ actor BillRepository: Sendable {
     private var context: ModelContext { modelExecutor.modelContext }
     
     func fetchBills() async throws -> [PersistentIdentifier] {
+        let today = Calendar.current.startOfDay(for: Date.now)
+        let past = Date.distantPast
         let descriptor = FetchDescriptor<Bills>(
+            predicate: #Predicate { ($0.nextDueDate >= today && $0.lastPaid ?? past != $0.nextDueDate) || ($0.nextDueDate < today && $0.lastPaid ?? past < $0.nextDueDate) },
             sortBy: [
-                .init(\.nextDueDate),
-                .init(\.startingDueDate)
+                .init(\.nextDueDate)
             ]
         )
         
@@ -68,6 +70,22 @@ actor BillRepository: Sendable {
         }
         
         context.delete(bill)
+        
+        do {
+            try context.save()
+        } catch {
+            throw error
+        }
+    }
+    
+    func addBillPayment(billID: PersistentIdentifier, payment: BillPaymentDataHolder) async throws {
+        guard let bill = context.model(for: billID) as? Bills else {
+            throw BillRepositoryError.noObjectForID
+        }
+
+        let newPayment = BillPayments(bill: bill, amount: payment.amount, date: payment.date, note: payment.note, id: payment.id)
+
+        bill.addPayment(payment: newPayment)
         
         do {
             try context.save()

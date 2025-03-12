@@ -14,7 +14,6 @@ import Observation
     @ObservationIgnored let context: ModelContext
     @ObservationIgnored let repositoryActor: BillRepository
 
-    var bills: [Bills] = []
     var billDates: Set<DateComponents> = []
 
     init(modelContext: ModelContext) {
@@ -24,7 +23,6 @@ import Observation
     }
 
     func fetchBills() async {
-        bills.removeAll()
         billDates.removeAll()
 
         do {
@@ -40,10 +38,6 @@ import Observation
                 guard let bill = context.model(for: billID) as? Bills else {
                     continue
                 }
-
-                bill.calculateNextDueDate()
-                
-                bills.append(bill)
 
                 billDates.insert(Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: bill.nextDueDate))
             }
@@ -63,15 +57,24 @@ import Observation
         }
     }
     
-    func deleteBill(at indexSet: IndexSet) {
+    func addPayment(billID: PersistentIdentifier, payment: BillPaymentDataHolder) {
         Task {
             do {
-                for index in indexSet {
-                    try await repositoryActor.deleteBill(id: bills[index].persistentModelID)
-                }
+                try await repositoryActor.addBillPayment(billID: billID, payment: payment)
+                await fetchBills()
             } catch {
-                print("Can not delete bill with error: \(error)")
+                print("Error adding Bill Payment with error: \(error)")
             }
         }
+    }
+    
+    func lastPaidDateString(lastPaid: Date?) -> String {
+        guard let lastPaidDate = lastPaid else {
+            return "Never"
+        }
+
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "MMM dd, yyyy"
+        return dateFormatter.string(from: lastPaidDate)
     }
 }
