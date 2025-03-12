@@ -41,9 +41,10 @@ final class Bills {
     var startingBalance: Double?
     var endDate: Date?
     var nextDueDate: Date
-    @Relationship(deleteRule: .cascade) var payments = [BillPayments]()
+    var lastPaid: Date?
+    @Relationship(deleteRule: .cascade, inverse: \BillPayments.bill) var payments: [BillPayments] = []
 
-    init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 0, startingBalance: Double? = nil, endDate: Date? = nil, id: UUID = UUID()) {
+    init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 0, startingBalance: Double? = nil, endDate: Date? = nil, lastPaid: Date? = nil, id: UUID = UUID()) {
         let startOfStartDueDate = Calendar.current.startOfDay(for: startingDueDate)
         
         self.id = id
@@ -58,6 +59,7 @@ final class Bills {
         self.remindDaysBefore = remindDaysBefore
         self.endDate = endDate
         self.nextDueDate = startOfStartDueDate
+        self.lastPaid = lastPaid
     }
     
     func calculateNextDueDate() {
@@ -112,6 +114,7 @@ final class Bills {
     
     func addPayment(payment: BillPayments) {
         payments.append(payment)
+        lastPaid = Calendar.current.startOfDay(for: Date.now)
         calculateNextDueDate()
     }
 }
@@ -121,7 +124,7 @@ final class BillPayments {
     #Unique<BillPayments>([\.id], [\.bill])
     
     var id: UUID
-    var bill: Bills
+    var bill: Bills?
     var amount: Double
     var date: Date
     var note: String
@@ -149,8 +152,9 @@ struct BillDataHolder: Codable {
     var startingBalance: Double?
     var endDate: Date?
     var nextDueDate: Date?
+    var lastPaid: Date?
     
-    init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 0, startingBalance: Double? = nil, endDate: Date? = nil, id: UUID = UUID()) {
+    init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 0, startingBalance: Double? = nil, endDate: Date? = nil, lastPaid: Date? = nil, id: UUID = UUID()) {
         self.id = id
         self.name = name
         self.icon = icon
@@ -162,6 +166,7 @@ struct BillDataHolder: Codable {
         self.reminder = reminder
         self.remindDaysBefore = remindDaysBefore
         self.endDate = endDate
+        self.lastPaid = lastPaid
     }
 }
 

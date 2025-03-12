@@ -19,11 +19,11 @@ actor BillRepository: Sendable {
     
     func fetchBills() async throws -> [PersistentIdentifier] {
         let today = Calendar.current.startOfDay(for: Date.now)
+        let past = Date.distantPast
         let descriptor = FetchDescriptor<Bills>(
-            predicate: #Predicate { $0.nextDueDate >= today },
+            predicate: #Predicate { ($0.nextDueDate >= today && $0.lastPaid ?? past != $0.nextDueDate) || ($0.nextDueDate < today && $0.lastPaid ?? past < $0.nextDueDate) },
             sortBy: [
-                .init(\.nextDueDate),
-                .init(\.startingDueDate)
+                .init(\.nextDueDate)
             ]
         )
         

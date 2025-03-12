@@ -11,6 +11,8 @@ import SwiftData
 struct MainBillView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(BillsViewModel.self) private var viewModel: BillsViewModel
+
+    @Query var bills: [Bills]
     
     @State private var showAddBillSheet: Bool = false
     
@@ -19,6 +21,17 @@ struct MainBillView: View {
         formatter.dateFormat = "MMM dd"
         return formatter
     }()
+    
+    init() {
+        let today = Calendar.current.startOfDay(for: Date.now)
+        let past = Date.distantPast
+
+        let predicate = #Predicate<Bills> {
+            ($0.nextDueDate >= today && $0.lastPaid ?? past != $0.nextDueDate) || ($0.nextDueDate < today && $0.lastPaid ?? past < $0.nextDueDate)
+        }
+
+        _bills = Query(filter: predicate, sort: \.nextDueDate)
+    }
 
     var body: some View {
         @Bindable var viewModel = viewModel
@@ -29,9 +42,9 @@ struct MainBillView: View {
                 .disabled(true)
 
             List {
-                ForEach(viewModel.bills) { item in
+                ForEach(bills) { item in
                     NavigationLink {
-                        Text("View Bill \(item.name)")
+                        BillDetailView.init(bill: item)
                     } label: {
                         HStack {
                             Image(systemName: item.icon)
@@ -88,7 +101,11 @@ struct MainBillView: View {
 
     private func deleteItems(offsets: IndexSet) {
         withAnimation {
-            viewModel.deleteBill(at: offsets)
+            for index in offsets {
+                modelContext.delete(bills[index])
+            }
+
+            try? modelContext.save()
         }
     }
 }
