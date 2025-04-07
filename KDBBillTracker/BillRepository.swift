@@ -17,30 +17,6 @@ actor BillRepository: Sendable {
     
     private var context: ModelContext { modelExecutor.modelContext }
     
-    func fetchBills() async throws -> [PersistentIdentifier] {
-        let today = Calendar.current.startOfDay(for: Date.now)
-        let past = Date.distantPast
-        let descriptor = FetchDescriptor<Bills>(
-            predicate: #Predicate { ($0.nextDueDate >= today && $0.lastPaid ?? past != $0.nextDueDate) || ($0.nextDueDate < today && $0.lastPaid ?? past < $0.nextDueDate) },
-            sortBy: [
-                .init(\.nextDueDate)
-            ]
-        )
-        
-        var billIDs: [PersistentIdentifier] = []
-        
-        do {
-            let fetched = try context.fetch(descriptor)
-            fetched.map { $0 }.forEach {
-                billIDs.append($0.persistentModelID)
-            }
-            
-            return billIDs
-        } catch {
-            throw error
-        }
-    }
-    
     func addDummyBills() async throws {
         // Add dummy bills
         let dummyBills = [BillDataHolder(name: "Bill 1", amountDue: 100),
@@ -63,7 +39,8 @@ actor BillRepository: Sendable {
             throw error
         }
     }
-    
+
+#warning("Think this can go away by using modelcontainer")
     func deleteBill(id: PersistentIdentifier) async throws {
         guard let bill = context.model(for: id) as? Bills else {
             throw BillRepositoryError.noObjectForID
@@ -77,7 +54,8 @@ actor BillRepository: Sendable {
             throw error
         }
     }
-    
+
+#warning("Think this can go away by using modelcontainer")
     func addBillPayment(billID: PersistentIdentifier, payment: BillPaymentDataHolder) async throws {
         guard let bill = context.model(for: billID) as? Bills else {
             throw BillRepositoryError.noObjectForID

@@ -151,10 +151,12 @@ struct BillDataHolder: Codable {
     var remindDaysBefore: Int
     var startingBalance: Double?
     var endDate: Date?
-    var nextDueDate: Date?
+    var nextDueDate: Date
     var lastPaid: Date?
     
     init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 0, startingBalance: Double? = nil, endDate: Date? = nil, lastPaid: Date? = nil, id: UUID = UUID()) {
+        let startOfStartDueDate = Calendar.current.startOfDay(for: startingDueDate)
+        
         self.id = id
         self.name = name
         self.icon = icon
@@ -167,6 +169,7 @@ struct BillDataHolder: Codable {
         self.remindDaysBefore = remindDaysBefore
         self.endDate = endDate
         self.lastPaid = lastPaid
+        self.nextDueDate = startOfStartDueDate
     }
 }
 

@@ -12,9 +12,12 @@ struct MainBillView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(BillsViewModel.self) private var viewModel: BillsViewModel
 
-    @Query var bills: [Bills]
+    @Query(filter: #Predicate<Bills> { bill in
+        (bill.nextDueDate >= today && bill.lastPaid ?? past != bill.nextDueDate) || (bill.nextDueDate < today && bill.lastPaid ?? past < bill.nextDueDate)
+    }, sort: \.nextDueDate) var bills: [Bills]
     
     @State private var showAddBillSheet: Bool = false
+    @State var billDates: Set<DateComponents> = []
     
     static let billDateFormat: DateFormatter = {
         let formatter = DateFormatter()
@@ -22,25 +25,26 @@ struct MainBillView: View {
         return formatter
     }()
     
-    init() {
-        let today = Calendar.current.startOfDay(for: Date.now)
-        let past = Date.distantPast
-
-        let predicate = #Predicate<Bills> {
-            ($0.nextDueDate >= today && $0.lastPaid ?? past != $0.nextDueDate) || ($0.nextDueDate < today && $0.lastPaid ?? past < $0.nextDueDate)
-        }
-
-        _bills = Query(filter: predicate, sort: \.nextDueDate)
-    }
+    static var today: Date { Calendar.current.startOfDay(for: Date.now) }
+    static var past: Date { Date.distantPast }
 
     var body: some View {
         @Bindable var viewModel = viewModel
-        
+
         NavigationSplitView {
-            MultiDatePicker("Bill Dates", selection: $viewModel.billDates)
+            MultiDatePicker("Bill Dates", selection: .init(
+                get: {
+                    let nextDates = bills.map { Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: $0.nextDueDate) }
+                    
+                   return Set(nextDates.map { $0 })
+                },
+                set: {
+                    billDates = $0
+                }
+            ))
                 .padding(.horizontal)
                 .disabled(true)
-
+                
             List {
                 ForEach(bills) { item in
                     NavigationLink {
@@ -70,6 +74,11 @@ struct MainBillView: View {
                 }
                 .onDelete(perform: deleteItems)
             }
+            .task {
+                if bills.isEmpty {
+                    await viewModel.addDummyBills()
+                }
+            }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     EditButton()
@@ -78,18 +87,13 @@ struct MainBillView: View {
                     Button(action: showAddBillScreen) {
                         Label("Add Bill", systemImage: "plus")
                     }
-                    .sheet(isPresented: $showAddBillSheet, content: AddBillView.init)
+                    .sheet(isPresented: $showAddBillSheet) {
+                        AddBillView.init()
+                    }
                 }
             }
         } detail: {
             Text("Select a Bill")
-        }
-        .onAppear {
-            let vm = viewModel
-
-            Task {
-                await vm.fetchBills()
-            }
         }
     }
 

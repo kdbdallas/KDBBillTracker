@@ -11,7 +11,6 @@ import SFSymbolsPicker
 
 struct AddBillView: View {
     @Environment(\.modelContext) private var modelContext
-    @Environment(BillsViewModel.self) private var viewModel: BillsViewModel
     @Environment(\.dismiss) var dismiss
     
     @State private var icon = "star.fill"
@@ -29,7 +28,6 @@ struct AddBillView: View {
     @State private var endDate = Date()
 
     var body: some View {
-        @Bindable var viewModel = viewModel
         
         NavigationView {
             Form {
@@ -150,9 +148,11 @@ struct AddBillView: View {
             billEndDate = nil
         }
         
-        let bill = BillDataHolder(name: billName, amountDue: amountDue, startingDueDate: nextDueDate, icon: icon, repeats: repeatInterval, paidAutomatically: paidAutomatically, paymentURL: paymentURL, reminder: reminderEnabled, remindDaysBefore: remindDaysBefore, startingBalance: startingBalance, endDate: billEndDate)
-
-        viewModel.addBill(bill)
+        let bill = Bills(name: billName, amountDue: amountDue, startingDueDate: nextDueDate, icon: icon, repeats: repeatInterval, paidAutomatically: paidAutomatically, paymentURL: paymentURL, reminder: reminderEnabled, remindDaysBefore: remindDaysBefore, startingBalance: startingBalance, endDate: billEndDate)
+        
+        modelContext.insert(bill)
+        
+        try? modelContext.save()
         
         dismiss()
     }
@@ -160,9 +160,7 @@ struct AddBillView: View {
 
 #Preview {
     let container = ModelContainer.previewContainer!
-    let vm: BillsViewModel = BillsViewModel(modelContext: container.mainContext)
-    
+
     AddBillView()
         .modelContainer(container)
-        .environment(vm)
 }
