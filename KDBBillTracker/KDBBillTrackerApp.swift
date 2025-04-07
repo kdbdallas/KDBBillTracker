@@ -39,7 +39,7 @@ struct KDBBillTrackerApp: App {
         WindowGroup {
             MainBillView()
         }
-        .modelContainer(sharedModelContainer)
+        .modelContainer(modelContainer)
         .environment(viewModel)
     }
 }
