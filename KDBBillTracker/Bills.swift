@@ -45,7 +45,8 @@ final class Bills {
     @Relationship(deleteRule: .cascade, inverse: \BillPayments.bill) var payments: [BillPayments] = []
 
     init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 0, startingBalance: Double? = nil, endDate: Date? = nil, lastPaid: Date? = nil, id: UUID = UUID()) {
-        let startOfStartDueDate = Calendar.current.startOfDay(for: startingDueDate)
+
+        let startOfStartDueDate = Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: startingDueDate).date ?? Date()
         
         self.id = id
         self.name = name
@@ -155,7 +156,8 @@ struct BillDataHolder: Codable {
     var lastPaid: Date?
     
     init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 0, startingBalance: Double? = nil, endDate: Date? = nil, lastPaid: Date? = nil, id: UUID = UUID()) {
-        let startOfStartDueDate = Calendar.current.startOfDay(for: startingDueDate)
+
+        let startOfStartDueDate = Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: startingDueDate).date ?? Date()
         
         self.id = id
         self.name = name

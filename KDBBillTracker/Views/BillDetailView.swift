@@ -13,8 +13,9 @@ struct BillDetailView: View {
     @Environment(BillsViewModel.self) private var viewModel: BillsViewModel
     @Environment(\.dismiss) var dismiss
     
-    @State var bill: Bills
+    @State var billID: PersistentIdentifier
     @State private var presentLogPaymentView = false
+    @State private var bill: Bills = .init(name: "", amountDue: 0)
     
     var body: some View {
         @Bindable var viewModel = viewModel
@@ -66,7 +67,7 @@ struct BillDetailView: View {
                             Text("Log Payment")
                         }
                         .sheet(isPresented: $presentLogPaymentView) {
-                            LogPaymentView(bill: bill)
+                            LogPaymentView(billID: bill.persistentModelID)
                         }
                         Spacer()
                     }
@@ -104,6 +105,9 @@ struct BillDetailView: View {
                 }
             }
         }
+        .task {
+            bill = modelContext.model(for: billID) as? Bills ?? .init(name: "", amountDue: 0)
+        }
     }
 }
 
@@ -113,7 +117,7 @@ struct BillDetailView: View {
     
     let bill = Bills.init(name: "Test Bill", amountDue: 100)
     
-    BillDetailView(bill: bill)
+    BillDetailView(billID: bill.persistentModelID)
         .modelContainer(container)
         .environment(vm)
 }
