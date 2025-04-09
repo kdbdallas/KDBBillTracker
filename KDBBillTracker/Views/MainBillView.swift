@@ -17,7 +17,8 @@ struct MainBillView: View {
     }, sort: \.nextDueDate) var bills: [Bills]
     
     @State private var showAddBillSheet: Bool = false
-    @State var billDates: Set<DateComponents> = []
+    @State var selectedDate = DateComponents()
+    @State private var billsToShow: [Bills] = []
     
     static let billDateFormat: DateFormatter = {
         let formatter = DateFormatter()
@@ -25,30 +26,38 @@ struct MainBillView: View {
         return formatter
     }()
     
-    static var today: Date { Calendar.current.startOfDay(for: Date.now) }
+    static var today: Date { Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: Date()).date ?? Date() }
     static var past: Date { Date.distantPast }
 
     var body: some View {
         @Bindable var viewModel = viewModel
 
         NavigationSplitView {
-            MultiDatePicker("Bill Dates", selection: .init(
-                get: {
-                    let nextDates = bills.map { Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: $0.nextDueDate) }
+
+            let nextDates = Set(bills.map { Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: $0.nextDueDate) })
+
+            CalendarView(
+                selectedDateComponents: $selectedDate,
+                preselectedDates: nextDates
+            )
+            .onChange(of: selectedDate) { _, _ in
+                if selectedDate.year != nil {
+                    let filteredBills = bills.filter {
+                        let nextDueDateComp = Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: $0.nextDueDate)
+
+                        return nextDueDateComp == selectedDate
+                    }
                     
-                   return Set(nextDates.map { $0 })
-                },
-                set: {
-                    billDates = $0
+                    billsToShow = filteredBills
+                } else {
+                    billsToShow = bills
                 }
-            ))
-                .padding(.horizontal)
-                .disabled(true)
+            }
                 
             List {
-                ForEach(bills) { item in
+                ForEach(billsToShow) { item in
                     NavigationLink {
-                        BillDetailView.init(bill: item)
+                        BillDetailView.init(billID: item.persistentModelID)
                     } label: {
                         HStack {
                             Image(systemName: item.icon)
@@ -78,6 +87,8 @@ struct MainBillView: View {
                 if bills.isEmpty {
                     await viewModel.addDummyBills()
                 }
+
+                billsToShow = bills
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {

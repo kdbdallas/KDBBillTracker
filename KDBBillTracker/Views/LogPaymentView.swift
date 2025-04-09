@@ -12,14 +12,14 @@ struct LogPaymentView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(BillsViewModel.self) private var viewModel: BillsViewModel
     @Environment(\.dismiss) var dismiss
-    
-    @State var bill: Bills
+
+    @State var billID: PersistentIdentifier
+    @State private var bill: Bills = .init(name: "", amountDue: 0)
     @State private var amount: Double = 0.0
     @State private var date: Date = Date()
     @State private var note: String = ""
     
     var body: some View {
-        @Bindable var viewModel = viewModel
         
         NavigationView {
             Form {
@@ -71,12 +71,15 @@ struct LogPaymentView: View {
         .onAppear() {
             amount = bill.amountDue
         }
+        .task {
+            bill = modelContext.model(for: billID) as? Bills ?? .init(name: "", amountDue: 0)
+        }
     }
     
     private func savePayment() {
         let payment = BillPaymentDataHolder(amount: amount, date: date, note: note)
 
-        viewModel.addPayment(billID: bill.persistentModelID, payment: payment)
+        viewModel.addPayment(billID: billID, payment: payment)
         
         dismiss()
     }
@@ -88,7 +91,7 @@ struct LogPaymentView: View {
     
     let bill = Bills.init(name: "Test Bill", amountDue: 100)
     
-    LogPaymentView(bill: bill)
+    LogPaymentView(billID: bill.persistentModelID)
         .modelContainer(container)
         .environment(vm)
 }
