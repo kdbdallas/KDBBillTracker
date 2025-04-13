@@ -62,6 +62,9 @@ struct MainBillView: View {
                         HStack {
                             Image(systemName: item.icon)
                                 .font(.title)
+                                .frame(maxWidth: 30)
+                            
+                            Spacer()
                             
                             VStack(alignment: .leading) {
                                 Text(item.name)
