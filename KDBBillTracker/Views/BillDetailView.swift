@@ -17,6 +17,8 @@ struct BillDetailView: View {
     @State private var presentLogPaymentView = false
     @State private var bill: Bills = .init(name: "", amountDue: 0)
     
+    @State private var showEditBillSheet = false
+    
     var body: some View {
         @Bindable var viewModel = viewModel
         
@@ -100,13 +102,22 @@ struct BillDetailView: View {
             }
 
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button("Edit") {
-                    
+                Button(action: showEditBillScreen) {
+                    Text("Edit")
+                }
+                .sheet(isPresented: $showEditBillSheet) {
+                    EditBillView.init(billID: bill.persistentModelID)
                 }
             }
         }
         .task {
             bill = modelContext.model(for: billID) as? Bills ?? .init(name: "", amountDue: 0)
+        }
+    }
+    
+    private func showEditBillScreen() {
+        withAnimation {
+            showEditBillSheet.toggle()
         }
     }
 }
