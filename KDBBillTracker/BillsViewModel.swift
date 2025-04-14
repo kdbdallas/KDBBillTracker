@@ -27,17 +27,6 @@ import Observation
             print("Error Adding Dummy Bills with error: \(error)")
         }
     }
-
-#warning("Think this can go away by using modelcontainer")
-    func addPayment(billID: PersistentIdentifier, payment: BillPaymentDataHolder) {
-        Task {
-            do {
-                try await repositoryActor.addBillPayment(billID: billID, payment: payment)
-            } catch {
-                print("Error adding Bill Payment with error: \(error)")
-            }
-        }
-    }
     
     func lastPaidDateString(lastPaid: Date?) -> String {
         guard let lastPaidDate = lastPaid else {

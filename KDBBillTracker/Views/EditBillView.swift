@@ -142,7 +142,7 @@ struct EditBillView: View {
             .presentationDetents([.large])
             .presentationBackgroundInteraction(.disabled)
             .presentationDragIndicator(.visible)
-            .task {
+            .onAppear() {
                 bill = modelContext.model(for: billID) as? Bills ?? .init(name: "", amountDue: 0)
                 
                 icon = bill.icon

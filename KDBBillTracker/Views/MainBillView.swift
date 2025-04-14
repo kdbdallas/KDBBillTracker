@@ -65,6 +65,7 @@ struct MainBillView: View {
                                 .frame(maxWidth: 30)
                             
                             Spacer()
+                                .frame(minWidth: 10, idealWidth: 14, maxWidth: 30)
                             
                             VStack(alignment: .leading) {
                                 Text(item.name)
