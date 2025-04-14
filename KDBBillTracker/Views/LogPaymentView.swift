@@ -81,9 +81,9 @@ struct LogPaymentView: View {
     }
     
     private func savePayment() {
-        let payment = BillPaymentDataHolder(amount: amount, date: date, note: note)
+        let newPayment = BillPayments(bill: bill, amount: amount, date: date, note: note)
 
-        viewModel.addPayment(billID: billID, payment: payment)
+        bill.addPayment(payment: newPayment)
         
         dismiss()
     }

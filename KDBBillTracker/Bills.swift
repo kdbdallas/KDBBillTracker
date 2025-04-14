@@ -44,7 +44,7 @@ final class Bills {
     var lastPaid: Date?
     @Relationship(deleteRule: .cascade, inverse: \BillPayments.bill) var payments: [BillPayments] = []
 
-    init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 0, startingBalance: Double? = nil, endDate: Date? = nil, lastPaid: Date? = nil, id: UUID = UUID()) {
+    init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 7, startingBalance: Double? = nil, endDate: Date? = nil, lastPaid: Date? = nil, id: UUID = UUID()) {
 
         let startOfStartDueDate = Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: startingDueDate).date ?? Date()
         
@@ -70,9 +70,9 @@ final class Bills {
         case .daily:
             nextDueDate = calendar.date(byAdding: .day, value: 1, to: nextDueDate) ?? nextDueDate
         case .weekly:
-            nextDueDate = calendar.date(byAdding: .day, value: 7, to: nextDueDate) ?? nextDueDate
+            nextDueDate = calendar.date(byAdding: .weekOfYear, value: 1, to: nextDueDate) ?? nextDueDate
         case .biWeekly:
-            nextDueDate = calendar.date(byAdding: .day, value: 14, to: nextDueDate) ?? nextDueDate
+            nextDueDate = calendar.date(byAdding: .weekOfYear, value: 2, to: nextDueDate) ?? nextDueDate
         case .monthly:
             nextDueDate = calendar.date(byAdding: .month, value: 1, to: nextDueDate) ?? nextDueDate
         case .biMonthly:
@@ -114,8 +114,10 @@ final class Bills {
     }
     
     func addPayment(payment: BillPayments) {
+        let paidDateComponents = Calendar.current.dateComponents([.month, .day, .year], from: payment.date)
+        
         payments.append(payment)
-        lastPaid = Calendar.current.startOfDay(for: Date.now)
+        lastPaid = Calendar.current.date(from: paidDateComponents) ?? Date.now
         calculateNextDueDate()
     }
 }
@@ -133,56 +135,6 @@ final class BillPayments {
     init(bill: Bills, amount: Double, date: Date = Date.now, note: String = "", id: UUID = UUID()) {
         self.id = id
         self.bill = bill
-        self.amount = amount
-        self.date = date
-        self.note = note
-    }
-}
-
-struct BillDataHolder: Codable {
-    var id: UUID
-    var name: String
-    var icon: String
-    var repeatInterval: RepeatInterval
-    var startingDueDate: Date
-    var amountDue: Double
-    var paidAutomatically: Bool
-    var paymentURL: String?
-    var reminder: Bool
-    var remindDaysBefore: Int
-    var startingBalance: Double?
-    var endDate: Date?
-    var nextDueDate: Date
-    var lastPaid: Date?
-    
-    init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 0, startingBalance: Double? = nil, endDate: Date? = nil, lastPaid: Date? = nil, id: UUID = UUID()) {
-
-        let startOfStartDueDate = Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: startingDueDate).date ?? Date()
-        
-        self.id = id
-        self.name = name
-        self.icon = icon
-        self.repeatInterval = repeats
-        self.startingDueDate = startingDueDate
-        self.amountDue = amountDue
-        self.paidAutomatically = paidAutomatically
-        self.paymentURL = paymentURL
-        self.reminder = reminder
-        self.remindDaysBefore = remindDaysBefore
-        self.endDate = endDate
-        self.lastPaid = lastPaid
-        self.nextDueDate = startOfStartDueDate
-    }
-}
-
-struct BillPaymentDataHolder: Codable {
-    var id: UUID
-    var amount: Double
-    var date: Date
-    var note: String
-
-    init(amount: Double, date: Date = Date.now, note: String = "", id: UUID = UUID()) {
-        self.id = id
         self.amount = amount
         self.date = date
         self.note = note
