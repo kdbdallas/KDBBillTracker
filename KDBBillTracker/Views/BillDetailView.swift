@@ -110,8 +110,10 @@ struct BillDetailView: View {
                 }
             }
         }
-        .task {
-            bill = modelContext.model(for: billID) as? Bills ?? .init(name: "", amountDue: 0)
+        .onAppear() {
+            if let billFromID = modelContext.model(for: billID) as? Bills {
+                bill = billFromID
+            }
         }
     }
     

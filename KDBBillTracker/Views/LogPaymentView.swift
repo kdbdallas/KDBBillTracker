@@ -21,9 +21,9 @@ struct LogPaymentView: View {
     
     var body: some View {
         
-        NavigationView {
+        NavigationStack {
             Form {
-                Section("\(bill.name) Payment") {
+                Section(bill.name) {
                     HStack {
                         Text("Amount")
                         
@@ -36,7 +36,7 @@ struct LogPaymentView: View {
                     }
                     
                     DatePicker(selection: $date, displayedComponents: .date) {
-                        Text("Date")
+                        Text("Paid Date")
                     }
                     
                     HStack {
@@ -58,6 +58,10 @@ struct LogPaymentView: View {
                     }
                 }
                 
+                ToolbarItem(placement: .principal) {
+                    Text("Log Payment")
+                }
+                
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button("Save") {
                         savePayment()
@@ -69,10 +73,10 @@ struct LogPaymentView: View {
             .presentationDragIndicator(.visible)
         }
         .onAppear() {
-            amount = bill.amountDue
-        }
-        .task {
-            bill = modelContext.model(for: billID) as? Bills ?? .init(name: "", amountDue: 0)
+            if let billFromID = modelContext.model(for: billID) as? Bills {
+                bill = billFromID
+                amount = bill.amountDue
+            }
         }
     }
     
