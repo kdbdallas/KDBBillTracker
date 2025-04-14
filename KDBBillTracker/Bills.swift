@@ -38,6 +38,8 @@ final class Bills {
     var paymentURL: String?
     var reminder: Bool
     var remindDaysBefore: Int
+    var nextRemindDate: Date?
+    var shownReminder: Bool
     var startingBalance: Double?
     var endDate: Date?
     var nextDueDate: Date
@@ -47,6 +49,11 @@ final class Bills {
     init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 7, startingBalance: Double? = nil, endDate: Date? = nil, lastPaid: Date? = nil, id: UUID = UUID()) {
 
         let startOfStartDueDate = Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: startingDueDate).date ?? Date()
+        
+        if reminder {
+            let remindDateReverseOffset: Int = (remindDaysBefore * -1)
+            self.nextRemindDate = Calendar.current.date(byAdding: .day, value: remindDateReverseOffset, to: startOfStartDueDate) ?? .now
+        }
         
         self.id = id
         self.name = name
@@ -58,6 +65,7 @@ final class Bills {
         self.paymentURL = paymentURL
         self.reminder = reminder
         self.remindDaysBefore = remindDaysBefore
+        self.shownReminder = false
         self.endDate = endDate
         self.nextDueDate = startOfStartDueDate
         self.lastPaid = lastPaid
@@ -87,6 +95,12 @@ final class Bills {
             nextDueDate = calendar.date(byAdding: .year, value: 1, to: nextDueDate) ?? nextDueDate
         case .never:
             nextDueDate = startingDueDate
+        }
+
+        if reminder {
+            let remindDateReverseOffset: Int = (remindDaysBefore * -1)
+            nextRemindDate = Calendar.current.date(byAdding: .day, value: remindDateReverseOffset, to: nextDueDate) ?? .now
+            shownReminder = false
         }
     }
     
