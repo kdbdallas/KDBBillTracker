@@ -93,6 +93,8 @@ struct MainBillView: View {
                 }
 
                 billsToShow = bills
+                
+                await viewModel.setupReminders(bills: billsToShow)
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {

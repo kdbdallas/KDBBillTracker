@@ -12,8 +12,9 @@ import SwiftData
 struct KDBBillTrackerApp: App {
 
     let modelContainer: ModelContainer
-
     var viewModel: BillsViewModel
+
+    @UIApplicationDelegateAdaptor private var appDelegate: BillsAppDelegate
 
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
@@ -51,4 +52,34 @@ extension ModelContainer{
 
         return container
     }()
+}
+
+class BillsAppDelegate: NSObject, UIApplicationDelegate, ObservableObject, @preconcurrency UNUserNotificationCenterDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+
+        let notificationCenter = UNUserNotificationCenter.current()
+        notificationCenter.delegate = self
+
+        return true
+    }
+
+    func userNotificationCenter(_: UNUserNotificationCenter, didReceive response: UNNotificationResponse) async {
+        let userInfo = response.notification.request.content.userInfo
+
+        //guard let billID = userInfo["BillID"] else { return }
+        
+        switch response.actionIdentifier {
+        case "snoozeAction":
+            print("snooze")
+            break
+
+        case "LogPaymentAction":
+            print("log payment")
+            break
+
+        default:
+            print("other action")
+              break
+        }
+    }
 }

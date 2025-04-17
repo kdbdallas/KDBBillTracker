@@ -40,6 +40,7 @@ final class Bills {
     var remindDaysBefore: Int
     var nextRemindDate: Date?
     var shownReminder: Bool
+    var reminderUUID: String?
     var startingBalance: Double?
     var endDate: Date?
     var nextDueDate: Date
@@ -70,7 +71,28 @@ final class Bills {
         self.nextDueDate = startOfStartDueDate
         self.lastPaid = lastPaid
     }
+}
+
+@Model
+final class BillPayments {
+    #Unique<BillPayments>([\.id], [\.bill])
     
+    var id: UUID
+    var bill: Bills?
+    var amount: Double
+    var date: Date
+    var note: String
+
+    init(bill: Bills, amount: Double, date: Date = Date.now, note: String = "", id: UUID = UUID()) {
+        self.id = id
+        self.bill = bill
+        self.amount = amount
+        self.date = date
+        self.note = note
+    }
+}
+
+extension Bills {
     func calculateNextDueDate() {
         let calendar = Calendar.current
 
@@ -108,7 +130,7 @@ final class Bills {
         var offset = ""
         
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date.now)
+        let today = calendar.startOfDay(for: .now)
         
         guard nextDueDate != today else { return "Due Today" }
         
@@ -133,24 +155,5 @@ final class Bills {
         payments.append(payment)
         lastPaid = Calendar.current.date(from: paidDateComponents) ?? Date.now
         calculateNextDueDate()
-    }
-}
-
-@Model
-final class BillPayments {
-    #Unique<BillPayments>([\.id], [\.bill])
-    
-    var id: UUID
-    var bill: Bills?
-    var amount: Double
-    var date: Date
-    var note: String
-
-    init(bill: Bills, amount: Double, date: Date = Date.now, note: String = "", id: UUID = UUID()) {
-        self.id = id
-        self.bill = bill
-        self.amount = amount
-        self.date = date
-        self.note = note
     }
 }

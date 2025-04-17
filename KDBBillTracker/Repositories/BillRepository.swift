@@ -19,7 +19,7 @@ actor BillRepository: Sendable {
     
     func addDummyBills() async throws {
         let addOneDay = Calendar.current.date(byAdding: .day, value: 1, to: .now) ?? .now
-        let addTwoDay = Calendar.current.date(byAdding: .day, value: 2, to: .now) ?? .now
+        let addSevenDays = Calendar.current.date(byAdding: .day, value: 7, to: .now) ?? .now
         
         var newBill = Bills(name: "Bill 1", amountDue: 100)
         context.insert(newBill)
@@ -27,7 +27,7 @@ actor BillRepository: Sendable {
         newBill = Bills(name: "Bill 2", amountDue: 125.75, startingDueDate: addOneDay, repeats: .weekly)
         context.insert(newBill)
         
-        newBill = Bills(name: "Bill 3", amountDue: 55.5, startingDueDate: addTwoDay, repeats: .monthly, reminder: true)
+        newBill = Bills(name: "Bill 3", amountDue: 55.5, startingDueDate: addSevenDays, repeats: .monthly, reminder: true)
         context.insert(newBill)
         
         do {
