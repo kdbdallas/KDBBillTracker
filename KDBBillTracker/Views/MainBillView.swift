@@ -19,6 +19,7 @@ struct MainBillView: View {
     @State private var showAddBillSheet: Bool = false
     @State var selectedDate = DateComponents()
     @State private var billsToShow: [Bills] = []
+    @State private var showLogPayment = false
     
     static let billDateFormat: DateFormatter = {
         let formatter = DateFormatter()
@@ -108,6 +109,12 @@ struct MainBillView: View {
                         AddBillView.init()
                     }
                 }
+            }
+            .onChange(of: viewModel.showLogPaymentView) { oldValue, newValue in
+                showLogPayment = newValue
+            }
+            .sheet(isPresented: $showLogPayment) {
+                LogPaymentView(billID: viewModel.notificationBillID)
             }
         } detail: {
             Text("Select a Bill")

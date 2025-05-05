@@ -36,4 +36,28 @@ actor BillRepository: Sendable {
             throw error
         }
     }
+
+    func snoozeNotification(billID: PersistentIdentifier) async {
+        let bill = context.registeredModel(for: billID) as Bills?
+
+        guard let bill = bill else { return }
+        guard let nextRemindDate = bill.nextRemindDate else { return }
+        
+        let todayDate = DateHelper().reminderTodayDateTime()
+        
+        let newRemindDate = Calendar.current.date(byAdding: .day, value: 1, to: nextRemindDate)
+        guard let newRemindDate = newRemindDate else { return }
+        
+        let (newRemindDateTime, newRemindDateTimeComps) = DateHelper().nextReminderDateTimeAndComps(nextRemindDate: newRemindDate)
+
+        if newRemindDateTime >= todayDate {
+            let reminderUUID = await NotificationRepository().setupLocalReminder(billName: bill.name, reminderDate: newRemindDateTimeComps, dueDate: bill.nextDueDate, amount: bill.amountDue, dueDateOffset: bill.dueDateOffsetString(), billID: bill.persistentModelID)
+            
+            bill.scheduledReminder = true
+            
+            guard let reminderUUID = reminderUUID else { return }
+            
+            bill.reminderUUID = reminderUUID
+        }
+    }
 }

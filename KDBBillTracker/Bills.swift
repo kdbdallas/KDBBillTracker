@@ -39,7 +39,7 @@ final class Bills {
     var reminder: Bool
     var remindDaysBefore: Int
     var nextRemindDate: Date?
-    var shownReminder: Bool
+    var scheduledReminder: Bool
     var reminderUUID: String?
     var startingBalance: Double?
     var endDate: Date?
@@ -66,7 +66,7 @@ final class Bills {
         self.paymentURL = paymentURL
         self.reminder = reminder
         self.remindDaysBefore = remindDaysBefore
-        self.shownReminder = false
+        self.scheduledReminder = false
         self.endDate = endDate
         self.nextDueDate = startOfStartDueDate
         self.lastPaid = lastPaid
@@ -122,7 +122,7 @@ extension Bills {
         if reminder {
             let remindDateReverseOffset: Int = (remindDaysBefore * -1)
             nextRemindDate = Calendar.current.date(byAdding: .day, value: remindDateReverseOffset, to: nextDueDate) ?? .now
-            shownReminder = false
+            scheduledReminder = false
         }
     }
     

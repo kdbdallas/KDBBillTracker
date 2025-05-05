@@ -9,7 +9,14 @@ import Foundation
 import NotificationCenter
 import SwiftData
 
+enum BillNotificationActionName: String {
+    case snooze = "Snooze"
+    case logPayment = "LogPayment"
+    case openApp = "OpenApp"
+}
+
 final class NotificationRepository {
+
     func setupLocalReminder(billName: String, reminderDate: DateComponents, dueDate: Date, amount: Double, dueDateOffset: String, billID: PersistentIdentifier) async -> String? {
 
         let billIDData = try? JSONEncoder().encode(billID)
@@ -25,7 +32,7 @@ final class NotificationRepository {
         content.userInfo = ["BillID" : billIDData]
         
         let action1 = UNNotificationAction(identifier: "snoozeAction", title: "Snooze", options: [])
-        let action2 = UNNotificationAction(identifier: "LogPaymentAction", title: "Log Payment", options: [])
+        let action2 = UNNotificationAction(identifier: "LogPaymentAction", title: "Log Payment", options: [.foreground])
 
         let category = UNNotificationCategory(identifier: "reminderCategory", actions: [action1, action2], intentIdentifiers: [], options: [])
 
