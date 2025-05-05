@@ -38,6 +38,9 @@ final class Bills {
     var paymentURL: String?
     var reminder: Bool
     var remindDaysBefore: Int
+    var nextRemindDate: Date?
+    var scheduledReminder: Bool
+    var reminderUUID: String?
     var startingBalance: Double?
     var endDate: Date?
     var nextDueDate: Date
@@ -47,6 +50,11 @@ final class Bills {
     init(name: String, amountDue: Double, startingDueDate: Date = Date.now, icon: String = "dollarsign.circle", repeats: RepeatInterval = .never, paidAutomatically: Bool = false, paymentURL: String? = nil, reminder: Bool = false, remindDaysBefore: Int = 7, startingBalance: Double? = nil, endDate: Date? = nil, lastPaid: Date? = nil, id: UUID = UUID()) {
 
         let startOfStartDueDate = Calendar.current.dateComponents([.calendar, .era, .year, .month, .day], from: startingDueDate).date ?? Date()
+        
+        if reminder {
+            let remindDateReverseOffset: Int = (remindDaysBefore * -1)
+            self.nextRemindDate = Calendar.current.date(byAdding: .day, value: remindDateReverseOffset, to: startOfStartDueDate) ?? .now
+        }
         
         self.id = id
         self.name = name
@@ -58,11 +66,33 @@ final class Bills {
         self.paymentURL = paymentURL
         self.reminder = reminder
         self.remindDaysBefore = remindDaysBefore
+        self.scheduledReminder = false
         self.endDate = endDate
         self.nextDueDate = startOfStartDueDate
         self.lastPaid = lastPaid
     }
+}
+
+@Model
+final class BillPayments {
+    #Unique<BillPayments>([\.id], [\.bill])
     
+    var id: UUID
+    var bill: Bills?
+    var amount: Double
+    var date: Date
+    var note: String
+
+    init(bill: Bills, amount: Double, date: Date = Date.now, note: String = "", id: UUID = UUID()) {
+        self.id = id
+        self.bill = bill
+        self.amount = amount
+        self.date = date
+        self.note = note
+    }
+}
+
+extension Bills {
     func calculateNextDueDate() {
         let calendar = Calendar.current
 
@@ -88,13 +118,19 @@ final class Bills {
         case .never:
             nextDueDate = startingDueDate
         }
+
+        if reminder {
+            let remindDateReverseOffset: Int = (remindDaysBefore * -1)
+            nextRemindDate = Calendar.current.date(byAdding: .day, value: remindDateReverseOffset, to: nextDueDate) ?? .now
+            scheduledReminder = false
+        }
     }
     
     func dueDateOffsetString() -> String {
         var offset = ""
         
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date.now)
+        let today = calendar.startOfDay(for: .now)
         
         guard nextDueDate != today else { return "Due Today" }
         
@@ -119,24 +155,5 @@ final class Bills {
         payments.append(payment)
         lastPaid = Calendar.current.date(from: paidDateComponents) ?? Date.now
         calculateNextDueDate()
-    }
-}
-
-@Model
-final class BillPayments {
-    #Unique<BillPayments>([\.id], [\.bill])
-    
-    var id: UUID
-    var bill: Bills?
-    var amount: Double
-    var date: Date
-    var note: String
-
-    init(bill: Bills, amount: Double, date: Date = Date.now, note: String = "", id: UUID = UUID()) {
-        self.id = id
-        self.bill = bill
-        self.amount = amount
-        self.date = date
-        self.note = note
     }
 }
