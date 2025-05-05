@@ -131,7 +131,7 @@ struct CalendarView: View {
                                                 Rectangle()
                                                     .frame(width: 20, height: 2)
                                                     .foregroundColor(.green) // Color for the current day indicator
-                                                    .padding(.top, 2)
+                                                    .padding(.top, -6)
                                                     .frame(maxWidth: .infinity, alignment: .center) // Ensure it's centered
                                             }
                                         }
